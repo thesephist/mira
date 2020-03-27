@@ -1,4 +1,187 @@
+/* polyx */
+
+body,
 html,
-body {
+form {
     margin: 0;
+    padding: 0;
+}
+
+body {
+    --ff: 'Barlow', system-ui, 'Helvetica', sans-serif;
+
+    --bg: #d9d9d9;
+    --frost: #F1F1F1;
+    --paper: #F9F9F9;
+    --fg: #222;
+    --light: #777;
+}
+
+.card {
+    display: block;
+    margin: 12px;
+    padding: 0;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, .08);
+    overflow: hidden;
+}
+
+.block {
+    padding: 8px 12px;
+}
+
+.light {
+    color: var(--light);
+    font-size: .825rem;
+}
+
+body {
+    background: var(--bg);
+}
+
+html {
+    font-size: 18px;
+}
+
+body,
+button,
+input[type="text"],
+input[type="tel"],
+input[type="email"],
+input[type="submit"],
+textarea {
+    font-size: 1rem;
+    color: var(--fb);
+    font-family: var(--ff);
+    border: 0;
+    margin: 0;
+    outline: 0;
+}
+
+textarea {
+    height: 100%;
+    flex-grow: 1;
+}
+
+ul,
+ol {
+    margin: 0;
+    padding-left: 0;
+    list-style: none;
+}
+
+input[type="submit"] {
+    -webkit-appearance: none;
+}
+
+a,
+button,
+input[type="submit"] {
+    color: var(--fg);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+button:hover,
+input[type="submit"].card:hover {
+    cursor: pointer;
+}
+
+.bg {
+    background: var(--bg);
+}
+
+.frost {
+    background: var(--frost);
+}
+
+.paper {
+    background: var(--paper);
+}
+
+/* polyx/mira */
+
+body {
+    max-width: 840px;
+    margin: 0 auto;
+}
+
+header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 12px;
+}
+
+.title {
+    font-weight: bold;
+}
+
+label {
+    font-size: .8em;
+}
+
+.searchBar {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.searchInput {
+    /* webkit inserts weird margin */
+    margin-right: -3px;
+    width: 0;
+    flex-grow: 1;
+}
+
+.searchButton,
+.addButton {
+    margin: 0;
+}
+
+.split-h {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.split-v {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
+.buttonArea {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.contact-list {
+    margin-top: -12px;
+}
+
+.contact-item input {
+    background: var(--frost);
+}
+
+footer {
+    margin-top: 12px;
+    text-align: center;
+    width: 100%;
+}
+
+.m0 {
+    margin: 0;
+}
+
+.p0 {
+    padding: 0;
 }

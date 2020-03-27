@@ -9,9 +9,7 @@ const DATA_ORIGIN = '/data';
 
 /* all styles done within main.css, not components */
 
-class Contact extends Record {
-
-}
+class Contact extends Record {}
 
 class ContactStore extends StoreOf(Contact) {
 
@@ -42,35 +40,51 @@ class ContactStore extends StoreOf(Contact) {
 
 class ContactItem extends Component {
 
-    init(record) {
+    init(record, remover, {persister, sorter}) {
         this.isEditing = false;
 
-        this.addTel = this.addTel.bind(this);
-        this.addEmail = this.addEmail.bind(this);
+        this.addTel = this.addMultiItem.bind(this, 'tel');
+        this.addEmail = this.addMultiItem.bind(this, 'email');
         this.toggleIsEditing = this.toggleIsEditing.bind(this);
+        this.toggleIsEditingSilently = this.toggleIsEditingSilently.bind(this);
+
+        this.remover = () => {
+            remover();
+            persister();
+        }
+        this.persister = persister;
+        this.sorter = sorter;
 
         this.bind(record, data => this.render(data));
     }
 
-    addTel() {
-        // US number by default
-        this.record.update({tel: (this.record.get('tel') || []).concat('+1')});
-    }
-
-    addEmail() {
-        // US number by default
-        this.record.update({email: (this.record.get('email') || []).concat('name@example.com')});
+    addMultiItem(label) {
+        this.record.update({[label]: (this.record.get(label) || []).concat('')});
     }
 
     toggleIsEditing(evt) {
         evt.stopPropagation();
 
         if (this.isEditing) {
+            for (const label of ['name', 'place']) {
+                const value = this.node.querySelector(`input[name=${label}]`).value.trim();
+                this.record.update({[label]: value})
+            }
             for (const label of ['tel', 'email']) {
                 const inputs = this.node.querySelectorAll(`input[name=${label}]`);
                 const values = Array.from(inputs).map(el => el.value.trim()).filter(el => el !== '');
                 this.record.update({[label]: values});
             }
+            this.persister();
+            this.sorter();
+        }
+
+        this.toggleIsEditingSilently();
+    }
+
+    toggleIsEditingSilently(evt) {
+        if (evt) {
+            evt.stopPropagation();
         }
 
         this.isEditing = !this.isEditing;
@@ -78,37 +92,55 @@ class ContactItem extends Component {
     }
 
     compose(data) {
-        // NOTE: contact schema
-        const {
-            name,
-            place = '',
-            tel = [],
-            email = [],
-        } = data;
+        const inputGroup = (label, prop, placeholder) => {
+            const val = data[prop] || '';
+            return jdom`<div class="inputGroup">
+                <label>${label}</label>
+                <div class="entries">
+                    ${this.isEditing ? (
+                        jdom`<input type="text" name="${prop}" value="${val}" placeholder="${placeholder}" />`
+                    ) : (
+                        jdom`<div>${val}</div>`
+                    )}
+                </div>
+            </div>`;
+        }
 
-        return jdom`<li class="contact-item" onclick="${this.isEditing || this.toggleIsEditing}">
-            <div class="left">
-                <div class="name">${name}</div>
-            </div>
-            <div class="right">
-                <div class="tel">
+        const inputMultiGroup = (label, prop, placeholder) => {
+            const vals = data[prop] || [];
+            return jdom`<div class="inputGroup">
+                <label>${label}</label>
+                <div class="entries">
                     ${this.isEditing ? (
-                        tel.map(t => jdom`<input type="tel" name="tel" value="${t}"/>`)
-                            .concat(jdom`<button onclick="${this.addTel}">+ tel</button>`)
+                        vals.map(t => jdom`<input type="text" name="${prop}" value="${t}" placeholder="${placeholder}" />`)
+                            .concat(jdom`<button onclick="${this.addMultiItem.bind(this, prop)}">+ ${placeholder}</button>`)
                     ) : (
-                        tel.map(t => jdom`<a href="tel:${t}">${t}</a>`)
+                        vals.map(t => jdom`<span>${t}</span>`)
                     )}
                 </div>
-                <div class="email">
-                    ${this.isEditing ? (
-                        email.map(t => jdom`<input type="email" name="email" value="${t}"/>`)
-                            .concat(jdom`<button onclick="${this.addEmail}">+ email</button>`)
-                    ) : (
-                        email.map(t => jdom`<a href="mailto:${t}">${t}</a>`)
-                    )}
+            </div>`;
+        }
+
+        return jdom`<li class="contact-item card paper block split-v" onclick="${this.isEditing || this.toggleIsEditing}">
+            <div class="editArea split-h">
+                <div class="left">
+                    ${inputGroup('name', 'name', 'name')}
+                    ${inputGroup('place', 'place', 'place')}
                 </div>
-                ${this.isEditing ? jdom`<button onclick="${this.toggleIsEditing}">save</button>` : null}
+                <div class="right">
+                    ${inputMultiGroup('tel', 'tel', 'tel')}
+                    ${inputMultiGroup('email', 'email', 'email')}
+                </div>
             </div>
+            ${this.isEditing ? jdom`<div class="split-h">
+                <div class="left buttonArea">
+                    <button class="frost block card" onclick="${this.remover}">delete</button>
+                </div>
+                <div class="right buttonArea">
+                    <button class="frost block card" onclick="${this.toggleIsEditingSilently}">cancel</button>
+                    <button class="frost block card" onclick="${this.toggleIsEditing}">save</button>
+                </div>
+            </div>` : null}
         </li>`;
     }
 
@@ -118,9 +150,6 @@ class ContactList extends ListOf(ContactItem) {
 
     compose(items) {
         return jdom`<ul class="contact-list">
-            <li class="contact-item">
-                <button onclick="${() => this.store.create({name: 'person'})}">add</button>
-            </li>
             ${this.nodes}
         </div>`;
     }
@@ -130,19 +159,75 @@ class ContactList extends ListOf(ContactItem) {
 class App extends Component {
 
     init() {
+        this.searchInput = '';
+
+        this.handleSearch = this.handleSearch.bind(this);
+
         this.contacts = new ContactStore();
-        this.list = new ContactList(this.contacts);
+        this.list = new ContactList(
+            this.contacts,
+            {
+                persister: () => this.contacts.persist(),
+                sorter: () => this.list.itemsChanged(),
+            },
+        );
+    }
+
+    handleSearch(evt) {
+        this.searchInput = evt.target.value.trim();
+
+        if (this.searchInput === '') {
+            this.list.unfilter();
+            return
+        }
+
+        const kw = this.searchInput.toLowerCase();
+        function matches(s) {
+            return s.toString().toLowerCase().includes(kw);
+        }
+
+        this.list.filter(contact => {
+            for (const v of Object.values(contact.serialize())) {
+                if (v == null) {
+                    continue;
+                }
+
+                if (Array.isArray(v)) {
+                    for (const it of v) {
+                        if (matches(it)) {
+                            return true;
+                        }
+                    }
+                } else {
+                    if (matches(v)) {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        });
     }
 
     compose() {
         return jdom`<div>
             <header>
-                <strong>Mira</strong>
-                <button onclick="${() => this.contacts.persist()}">save</button>
+                <div class="title">
+                    <a href="/">mira</a>
+                </div>
+                <div class="searchBar card">
+                    <input type="text" value="${this.searchInput}"
+                        class="searchInput paper block"
+                        oninput="${this.handleSearch}"
+                        placeholder="type to search..." />
+                </div>
+                <button class="addButton card frost block"
+                    onclick="${() => this.contacts.create({name: 'person'})}">add</button>
             </header>
             ${this.list.node}
             <footer>
-                <a href="https://github.com/thesehpist/mira" target="_blank">src</a>
+                <a href="https://github.com/thesehpist/mira" target="_blank">src</a>,
+                &#169; 2020
             </footer>
         </div>`;
     }
