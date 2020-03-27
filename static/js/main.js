@@ -9,7 +9,17 @@ const DATA_ORIGIN = '/data';
 
 /* all styles done within main.css, not components */
 
-class Contact extends Record {}
+class Contact extends Record {
+
+    singleProperties() {
+        return ['name', 'place', 'work'];
+    }
+
+    multiProperties() {
+        return ['tel', 'email'];
+    }
+
+}
 
 class ContactStore extends StoreOf(Contact) {
 
@@ -66,11 +76,11 @@ class ContactItem extends Component {
         evt.stopPropagation();
 
         if (this.isEditing) {
-            for (const label of ['name', 'place']) {
+            for (const label of this.record.singleProperties()) {
                 const value = this.node.querySelector(`input[name=${label}]`).value.trim();
                 this.record.update({[label]: value})
             }
-            for (const label of ['tel', 'email']) {
+            for (const label of this.record.multiProperties()) {
                 const inputs = this.node.querySelectorAll(`input[name=${label}]`);
                 const values = Array.from(inputs).map(el => el.value.trim()).filter(el => el !== '');
                 this.record.update({[label]: values});
@@ -93,7 +103,12 @@ class ContactItem extends Component {
 
     compose(data) {
         const inputGroup = (label, prop, placeholder) => {
-            const val = data[prop] || '';
+            const val = data[prop];
+
+            if (!this.isEditing && val == null) {
+                return null;
+            }
+
             return jdom`<div class="inputGroup">
                 <label>${label}</label>
                 <div class="entries">
@@ -108,6 +123,11 @@ class ContactItem extends Component {
 
         const inputMultiGroup = (label, prop, placeholder) => {
             const vals = data[prop] || [];
+
+            if (!this.isEditing && vals.length === 0) {
+                return null;
+            }
+
             return jdom`<div class="inputGroup">
                 <label>${label}</label>
                 <div class="entries">
@@ -124,12 +144,14 @@ class ContactItem extends Component {
         return jdom`<li class="contact-item card paper block split-v" onclick="${this.isEditing || this.toggleIsEditing}">
             <div class="editArea split-h">
                 <div class="left">
-                    ${inputGroup('name', 'name', 'name')}
-                    ${inputGroup('place', 'place', 'place')}
+                    ${this.record.singleProperties().map(label => {
+                        return inputGroup(label, label, label)
+                    })}
                 </div>
                 <div class="right">
-                    ${inputMultiGroup('tel', 'tel', 'tel')}
-                    ${inputMultiGroup('email', 'email', 'email')}
+                    ${this.record.multiProperties().map(label => {
+                        return inputMultiGroup(label, label, label)
+                    })}
                 </div>
             </div>
             ${this.isEditing ? jdom`<div class="split-h">

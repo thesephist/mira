@@ -58,6 +58,24 @@ textarea {
     outline: 0;
 }
 
+button:focus,
+input[type="text"]:focus,
+input[type="tel"]:focus,
+input[type="email"]:focus,
+input[type="submit"]:focus,
+textarea:focus {
+    background: var(--bg);
+}
+
+button,
+input[type="text"],
+input[type="tel"],
+input[type="email"],
+input[type="submit"] {
+    border-radius: 6px;
+    padding: 2px 4px;
+}
+
 textarea {
     height: 100%;
     flex-grow: 1;
@@ -119,7 +137,18 @@ header {
 }
 
 label {
-    font-size: .8em;
+    font-weight: bold;
+    margin-right: .25em;
+}
+
+.inputGroup {
+    display: flex;
+    flex-direction: row;
+}
+
+.inputGroup .entries {
+    display: flex;
+    flex-direction: column;
 }
 
 .searchBar {
@@ -170,6 +199,10 @@ label {
 
 .contact-item input {
     background: var(--frost);
+}
+
+.contact-item .card {
+    background: var(--bg);
 }
 
 footer {
