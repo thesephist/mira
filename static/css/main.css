@@ -67,15 +67,6 @@ textarea:focus {
     background: var(--bg);
 }
 
-button,
-input[type="text"],
-input[type="tel"],
-input[type="email"],
-input[type="submit"] {
-    border-radius: 6px;
-    padding: 2px 4px;
-}
-
 textarea {
     height: 100%;
     flex-grow: 1;

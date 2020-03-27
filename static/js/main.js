@@ -76,15 +76,17 @@ class ContactItem extends Component {
         evt.stopPropagation();
 
         if (this.isEditing) {
+            const changes = {};
             for (const label of this.record.singleProperties()) {
                 const value = this.node.querySelector(`input[name=${label}]`).value.trim();
-                this.record.update({[label]: value})
+                changes[label] = value;
             }
             for (const label of this.record.multiProperties()) {
                 const inputs = this.node.querySelectorAll(`input[name=${label}]`);
                 const values = Array.from(inputs).map(el => el.value.trim()).filter(el => el !== '');
-                this.record.update({[label]: values});
+                changes[label] = values;
             }
+            this.record.update(changes);
             this.persister();
             this.sorter();
         }
