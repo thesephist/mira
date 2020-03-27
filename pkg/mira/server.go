@@ -12,9 +12,22 @@ import (
 
 const dataFilePath = "./data/mira.txt"
 
+func ensureDataFileExists() {
+	_, err := os.Stat(dataFilePath)
+	if os.IsNotExist(err) {
+		_, err = os.Create(dataFilePath)
+	}
+
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
 func getData(w http.ResponseWriter, r *http.Request) {
 	dataFile, err := os.Open(dataFilePath)
 	if err != nil {
+		log.Println("file open on get", err.Error())
+		w.WriteHeader(500)
 		io.WriteString(w, "error reading file")
 		return
 	}
@@ -24,15 +37,21 @@ func getData(w http.ResponseWriter, r *http.Request) {
 }
 
 func postData(w http.ResponseWriter, r *http.Request) {
-	dataFile, err := os.Open(dataFilePath)
+	dataFile, err := os.OpenFile(dataFilePath, os.O_WRONLY|os.O_TRUNC, 0644)
 	if err != nil {
+		log.Println("file open on post", err.Error())
+		w.WriteHeader(500)
 		io.WriteString(w, "error reading file")
 		return
 	}
 	defer dataFile.Close()
 
-	io.Copy(w, dataFile)
-	io.Copy(dataFile, r.Body)
+	_, err = io.Copy(dataFile, r.Body)
+	if err != nil {
+		log.Println("copy from request:", err.Error())
+		w.WriteHeader(500)
+		return
+	}
 }
 
 func handleHome(w http.ResponseWriter, r *http.Request) {
@@ -47,6 +66,8 @@ func handleHome(w http.ResponseWriter, r *http.Request) {
 }
 
 func Start() {
+	ensureDataFileExists()
+
 	r := mux.NewRouter()
 
 	srv := &http.Server{
@@ -61,6 +82,6 @@ func Start() {
 	r.Methods("POST").Path("/data").HandlerFunc(postData)
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 
-	log.Printf("Plume listening on %s\n", srv.Addr)
+	log.Printf("Mira listening on %s\n", srv.Addr)
 	log.Fatal(srv.ListenAndServe())
 }
