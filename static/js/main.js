@@ -113,6 +113,20 @@ class ContactItem extends Component {
         }
 
         if (this.isEditing) {
+            // remove empty items
+            for (const prop of Object.keys(this.inputs)) {
+                const item = this.inputs[prop];
+                if (item == null) {
+                    continue;
+                }
+
+                if (Array.isArray(item)) {
+                    this.inputs[prop] = item.map(it => it.trim()).filter(it => it !== '');
+                } else {
+                    this.inputs[prop] = item.toString().trim();
+                }
+            }
+
             this.record.update(this.inputs);
             this.persister();
             this.sorter();
