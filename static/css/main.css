@@ -11,7 +11,7 @@ body {
     --ff: 'Barlow', system-ui, 'Helvetica', sans-serif;
 
     --bg: #d9d9d9;
-    --frost: #F1F1F1;
+    --frost: #e9e9e9;
     --paper: #F9F9F9;
     --fg: #222;
     --light: #777;
@@ -279,4 +279,34 @@ footer {
     .editArea {
         flex-direction: column;
     }
+    .contact-single-items {
+        margin-bottom: .4em;
+    }
+}
+
+@keyframes loader-slide {
+    0% {
+        transform: scaleX(1) translateX(-100%);
+    }
+    50% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: scaleX(1) translateX(100%);
+    }
+}
+
+.loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    display: block;
+    background: var(--light);
+    height: 4px;
+    z-index: 10;
+
+    animation: loader-slide linear 1s infinite;
+    animation-direction: alternate;
 }

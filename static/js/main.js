@@ -33,6 +33,10 @@ class Contact extends Record {
 
 class ContactStore extends StoreOf(Contact) {
 
+    init(...args) {
+        this.super.init(...args);
+    }
+
     get comparator() {
         return contact => contact.get('name');
     }
@@ -50,10 +54,9 @@ class ContactStore extends StoreOf(Contact) {
     }
 
     async persist() {
-        const data = this.serialize();
         return fetch(DATA_ORIGIN, {
             method: 'POST',
-            body: JSON.stringify(data),
+            body: JSON.stringify(this.serialize()),
         });
     }
 }
@@ -209,21 +212,49 @@ class ContactList extends ListOf(ContactItem) {
 
 }
 
+class LoadingIndicator extends Component {
+
+    compose() {
+        return jdom`<div class="loader"></div>`;
+    }
+
+}
+
 class App extends Component {
 
     init() {
         this.searchInput = '';
+        this.isFetching = false;
 
         this.handleSearch = this.handleSearch.bind(this);
 
+        this.loader = new LoadingIndicator();
         this.contacts = new ContactStore();
         this.list = new ContactList(
             this.contacts,
             {
-                persister: () => this.contacts.persist(),
+                persister: async () => {
+                    this.isFetching = true;
+                    this.render();
+
+                    await this.contacts.persist();
+
+                    this.isFetching = false;
+                    this.render();
+                },
                 sorter: () => this.list.itemsChanged(),
             },
         );
+
+        (async () => {
+            this.isFetching = true;
+            this.render();
+
+            await this.contacts.fetch();
+
+            this.isFetching = false;
+            this.render();
+        })();
     }
 
     handleSearch(evt) {
@@ -272,7 +303,8 @@ class App extends Component {
                     <input type="text" value="${this.searchInput}"
                         class="searchInput paper block"
                         oninput="${this.handleSearch}"
-                        placeholder="type to search..." />
+                        placeholder="type to search..."
+                        autofocus />
                 </div>
                 <button class="addButton card frost block"
                     onclick="${() => this.contacts.create({name: '?'})}">add</button>
@@ -282,6 +314,7 @@ class App extends Component {
                 <a href="https://github.com/thesehpist/mira" target="_blank">src</a>,
                 &#169; 2020
             </footer>
+            ${this.isFetching ? this.loader.node : null}
         </div>`;
     }
 
@@ -289,9 +322,3 @@ class App extends Component {
 
 const app = new App();
 document.getElementById('app').appendChild(app.node);
-
-// load contacts from origin
-app.contacts.fetch();
-
-// XXX: for debugging
-window.app = app;
