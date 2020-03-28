@@ -9,6 +9,8 @@ const DATA_ORIGIN = '/data';
 
 const PAGIATE_BY = 20;
 
+const TODAY_ISO = (new Date()).toISOString().slice(0, 10);
+
 class Contact extends Record {
 
     singleProperties() {
@@ -17,6 +19,7 @@ class Contact extends Record {
             ['place', 'place', 'place'],
             ['work', 'work', 'work'],
             ['twttr', 'twttr', '@username'],
+            ['last', 'last', 'last met...'],
             ['notes', 'notes', 'notes', true],
         ];
     }
@@ -38,7 +41,15 @@ class ContactStore extends StoreOf(Contact) {
     }
 
     get comparator() {
-        return contact => contact.get('name');
+        return contact => {
+            const last = contact.get('last');
+            if (!last) {
+                return 0;
+            }
+
+            const lastDate = new Date(last);
+            return -lastDate.getTime();
+        }
     }
 
     async fetch() {
@@ -59,6 +70,7 @@ class ContactStore extends StoreOf(Contact) {
             body: JSON.stringify(this.serialize()),
         });
     }
+
 }
 
 class ContactItem extends Component {
@@ -71,6 +83,7 @@ class ContactItem extends Component {
         this.toggleIsEditing = this.toggleIsEditing.bind(this);
         this.toggleIsEditingSilently = this.toggleIsEditingSilently.bind(this);
         this.handleDeleteClick = this.handleDeleteClick.bind(this);
+        this.fillToday = this.fillToday.bind(this);
 
         this.remover = () => {
             remover();
@@ -96,7 +109,7 @@ class ContactItem extends Component {
                 changes[prop] = value;
             }
             for (const [_, prop] of this.record.multiProperties()) {
-                const inputs = this.node.querySelectorAll(`input[name=${prop}]`);
+                const inputs = this.node.querySelectorAll(`[name=${prop}]`);
                 const values = Array.from(inputs).map(el => el.value.trim()).filter(el => el !== '');
                 changes[prop] = values;
             }
@@ -121,6 +134,10 @@ class ContactItem extends Component {
         if (window.confirm(`Delete ${this.record.get('name')}?`)) {
             this.remover();
         }
+    }
+
+    fillToday(evt) {
+        this.node.querySelector('[name=last]').value = TODAY_ISO;
     }
 
     compose(data) {
@@ -168,7 +185,7 @@ class ContactItem extends Component {
                             .concat(jdom`<button class="contact-add-button"
                                 onclick="${this.addMultiItem.bind(this, prop)}">+ ${placeholder}</button>`)
                     ) : (
-                        vals.map(t => jdom`<span>${t}</span>`)
+                        vals.map(t => jdom`<span>${t.substr(0, 256)}</span>`)
                     )}
                 </div>
             </div>`;
@@ -193,6 +210,7 @@ class ContactItem extends Component {
                     <button class="contact-button" onclick="${this.handleDeleteClick}">delete</button>
                 </div>
                 <div class="right buttonArea">
+                    <button class="contact-button" onclick="${this.fillToday}">today!</button>
                     <button class="contact-button" onclick="${this.toggleIsEditingSilently}">cancel</button>
                     <button class="contact-button" onclick="${this.toggleIsEditing}">save</button>
                 </div>
@@ -212,14 +230,6 @@ class ContactList extends ListOf(ContactItem) {
 
 }
 
-class LoadingIndicator extends Component {
-
-    compose() {
-        return jdom`<div class="loader"></div>`;
-    }
-
-}
-
 class App extends Component {
 
     init() {
@@ -228,7 +238,6 @@ class App extends Component {
 
         this.handleSearch = this.handleSearch.bind(this);
 
-        this.loader = new LoadingIndicator();
         this.contacts = new ContactStore();
         this.list = new ContactList(
             this.contacts,
@@ -303,7 +312,7 @@ class App extends Component {
                     <input type="text" value="${this.searchInput}"
                         class="searchInput paper block"
                         oninput="${this.handleSearch}"
-                        placeholder="type to search..."
+                        placeholder="search ${this.contacts.records.size} contacts ..."
                         autofocus />
                 </div>
                 <button class="addButton card frost block"
@@ -311,10 +320,11 @@ class App extends Component {
             </header>
             ${this.list.node}
             <footer>
-                <a href="https://github.com/thesehpist/mira" target="_blank">src</a>,
+                <a href="https://github.com/thesehpist/mira" target="_blank">src</a>
+                ::
                 &#169; 2020
             </footer>
-            ${this.isFetching ? this.loader.node : null}
+            ${this.isFetching ? jdom`<div class="loader" />`: null}
         </div>`;
     }
 
