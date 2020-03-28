@@ -103,7 +103,7 @@ class ContactItem extends Component {
     }
 
     addMultiItem(label) {
-        this.inputs[label] = this.inputs[label].concat('');
+        this.inputs[label] = (this.inputs[label] || []).concat('');
         this.render();
     }
 
