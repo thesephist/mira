@@ -113,17 +113,7 @@ class ContactItem extends Component {
         }
 
         if (this.isEditing) {
-            const changes = {};
-            for (const [_, prop] of this.record.singleProperties()) {
-                const value = this.node.querySelector(`[name=${prop}]`).value.trim();
-                changes[prop] = value;
-            }
-            for (const [_, prop] of this.record.multiProperties()) {
-                const inputs = this.node.querySelectorAll(`[name^=${prop}]`);
-                const values = Array.from(inputs).map(el => el.value.trim()).filter(el => el !== '');
-                changes[prop] = values;
-            }
-            this.record.update(changes);
+            this.record.update(this.inputs);
             this.persister();
             this.sorter();
         } else {
