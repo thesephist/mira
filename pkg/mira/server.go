@@ -15,10 +15,18 @@ const dataFilePath = "./data/mira.txt"
 func ensureDataFileExists() {
 	_, err := os.Stat(dataFilePath)
 	if os.IsNotExist(err) {
-		_, err = os.Create(dataFilePath)
-	}
+		dataFile, err := os.OpenFile(dataFilePath, os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer dataFile.Close()
 
-	if err != nil {
+		// empty JSON array
+		_, err = dataFile.Write([]byte("[]"))
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else if err != nil {
 		log.Fatal(err)
 	}
 }

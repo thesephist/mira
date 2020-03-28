@@ -42,6 +42,11 @@ class ContactStore extends StoreOf(Contact) {
 
     get comparator() {
         return contact => {
+            // ? is a special sentinel value that belongs at top of list
+            if (contact.get('name') === '?') {
+                return -Infinity;
+            }
+
             const last = contact.get('last');
             if (!last) {
                 return 0;
@@ -78,12 +83,14 @@ class ContactItem extends Component {
     init(record, remover, {persister, sorter}) {
         this.isEditing = false;
 
-        this.addTel = this.addMultiItem.bind(this, 'tel');
-        this.addEmail = this.addMultiItem.bind(this, 'email');
+        this.inputs = {};
+
         this.toggleIsEditing = this.toggleIsEditing.bind(this);
         this.toggleIsEditingSilently = this.toggleIsEditingSilently.bind(this);
         this.handleDeleteClick = this.handleDeleteClick.bind(this);
         this.fillToday = this.fillToday.bind(this);
+        this.handleInput = this.handleInput.bind(this);
+        this.persistIfEnter = this.persistIfEnter.bind(this);
 
         this.remover = () => {
             remover();
@@ -96,11 +103,14 @@ class ContactItem extends Component {
     }
 
     addMultiItem(label) {
-        this.record.update({[label]: (this.record.get(label) || []).concat('')});
+        this.inputs[label] = this.inputs[label].concat('');
+        this.render();
     }
 
     toggleIsEditing(evt) {
-        evt.stopPropagation();
+        if (evt) {
+            evt.stopPropagation();
+        }
 
         if (this.isEditing) {
             const changes = {};
@@ -109,13 +119,15 @@ class ContactItem extends Component {
                 changes[prop] = value;
             }
             for (const [_, prop] of this.record.multiProperties()) {
-                const inputs = this.node.querySelectorAll(`[name=${prop}]`);
+                const inputs = this.node.querySelectorAll(`[name^=${prop}]`);
                 const values = Array.from(inputs).map(el => el.value.trim()).filter(el => el !== '');
                 changes[prop] = values;
             }
             this.record.update(changes);
             this.persister();
             this.sorter();
+        } else {
+            this.inputs = this.record.serialize();
         }
 
         this.toggleIsEditingSilently();
@@ -140,9 +152,28 @@ class ContactItem extends Component {
         this.node.querySelector('[name=last]').value = TODAY_ISO;
     }
 
+    handleInput(evt) {
+        const propIdx = evt.target.getAttribute('name');
+        if (propIdx.includes('-')) {
+            // multi style prop
+            const [prop, idx] = propIdx.split('-');
+            this.inputs[prop][idx] = evt.target.value;
+        } else {
+            // single style prop
+            this.inputs[propIdx] = evt.target.value;
+        }
+        this.render();
+    }
+
+    persistIfEnter(evt) {
+        if (evt.key === 'Enter' && (evt.ctrlKey || evt.metaKey)) {
+            this.toggleIsEditing();
+        }
+    }
+
     compose(data) {
         const inputGroup = (label, prop, placeholder, isMultiline = false) => {
-            const val = data[prop];
+            const val = this.isEditing ? this.inputs[prop] : data[prop];
 
             if (!this.isEditing && !val) {
                 return null;
@@ -157,6 +188,8 @@ class ContactItem extends Component {
                         jdom`<${tag} type="text" name="${prop}" value="${val}"
                             class="contact-input"
                             autocomplete="none"
+                            onkeydown="${this.persistIfEnter}"
+                            oninput="${this.handleInput}"
                             placeholder="${placeholder}" />`
                     ) : (
                         jdom`<div>${val}</div>`
@@ -166,7 +199,7 @@ class ContactItem extends Component {
         }
 
         const inputMultiGroup = (label, prop, placeholder, isMultiline = false) => {
-            const vals = data[prop] || [];
+            const vals = (this.isEditing ? this.inputs[prop] : data[prop]) || [];
 
             if (!this.isEditing && vals.length === 0) {
                 return null;
@@ -178,9 +211,11 @@ class ContactItem extends Component {
                 <label class="contact-label">${label}</label>
                 <div class="entries">
                     ${this.isEditing ? (
-                        vals.map(t => jdom`<${tag} type="text" name="${prop}" value="${t}"
+                        vals.map((t, idx) => jdom`<${tag} type="text" name="${prop}-${idx}" value="${t}"
                                 class="contact-input"
                                 autocomplete="none"
+                                onkeydown="${this.persistIfEnter}"
+                                oninput="${this.handleInput}"
                                 placeholder="${placeholder}" />`)
                             .concat(jdom`<button class="contact-add-button"
                                 onclick="${this.addMultiItem.bind(this, prop)}">+ ${placeholder}</button>`)
@@ -316,7 +351,10 @@ class App extends Component {
                         autofocus />
                 </div>
                 <button class="addButton card frost block"
-                    onclick="${() => this.contacts.create({name: '?'})}">add</button>
+                    onclick="${() => this.contacts.create({
+                        name: '?',
+                        last: TODAY_ISO,
+                    })}">add</button>
             </header>
             ${this.list.node}
             <footer>
