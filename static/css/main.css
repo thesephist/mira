@@ -56,15 +56,15 @@ textarea {
     border: 0;
     margin: 0;
     outline: 0;
+    box-sizing: border-box;
 }
 
-button:focus,
-input[type="text"]:focus,
-input[type="tel"]:focus,
-input[type="email"]:focus,
-input[type="submit"]:focus,
-textarea:focus {
-    background: var(--bg);
+input[type="text"],
+input[type="tel"],
+input[type="email"],
+input[type="submit"],
+textarea {
+    transition: background-color .2s;
 }
 
 textarea {
@@ -94,6 +94,7 @@ input[type="submit"] {
 button:hover,
 input[type="submit"].card:hover {
     cursor: pointer;
+    opacity: .75;
 }
 
 .bg {
@@ -127,19 +128,16 @@ header {
     font-weight: bold;
 }
 
-label {
-    font-weight: bold;
-    margin-right: .25em;
-}
-
 .inputGroup {
     display: flex;
     flex-direction: row;
+    width: 100%;
 }
 
 .inputGroup .entries {
     display: flex;
     flex-direction: column;
+    width: 100%;
 }
 
 .searchBar {
@@ -177,6 +175,11 @@ label {
     justify-content: flex-start;
 }
 
+.buttonFooter {
+    padding: 8px 12px;
+    margin: 12px -12px -8px -12px;
+}
+
 .buttonArea {
     display: flex;
     flex-direction: row;
@@ -184,20 +187,74 @@ label {
     justify-content: flex-start;
 }
 
+.contact-button {
+    background: var(--paper);
+    padding: 4px 6px;
+}
+
+.left .contact-button {
+    margin-right: 8px;
+}
+
+.right .contact-button {
+    margin-left: 8px;
+}
+
 .contact-list {
     margin-top: -12px;
 }
 
-.contact-item input {
-    background: var(--frost);
+.contact-item {
+    cursor: pointer;
+}
+
+.contact-item.notEditing:hover {
+    opacity: .75;
 }
 
 .contact-item .card {
     background: var(--bg);
 }
 
+.inputGroup {
+    margin-bottom: .4em;
+}
+
+.contact-single-items,
+.contact-multi-items {
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.contact-label {
+    min-width: 3em;
+    margin-right: .25em;
+}
+
+.isEditing .contact-label {
+    padding: 4px 6px;
+}
+
+.contact-input,
+.contact-add-button {
+    background: var(--frost);
+    padding: 4px 6px;
+    display: block;
+    margin-bottom: .25em !important;
+}
+
+.contact-input:focus,
+.contact-add-button:hover {
+    background: var(--bg);
+}
+
+textarea.contact-input {
+    height: 8em;
+    resize: none;
+}
+
 footer {
-    margin-top: 12px;
+    margin: 12px 0;
     text-align: center;
     width: 100%;
 }
@@ -208,4 +265,15 @@ footer {
 
 .p0 {
     padding: 0;
+}
+
+@media only screen and (min-width: 42em) {
+    .contact-single-items {
+        padding-right: 1em;
+    }
+}
+@media only screen and (max-width: 42em) {
+    .editArea {
+        flex-direction: column;
+    }
 }

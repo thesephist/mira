@@ -7,16 +7,24 @@ const {
 
 const DATA_ORIGIN = '/data';
 
-/* all styles done within main.css, not components */
+const PAGIATE_BY = 20;
 
 class Contact extends Record {
 
     singleProperties() {
-        return ['name', 'place', 'work'];
+        return [
+            ['name', 'name', 'name'],
+            ['place', 'place', 'place'],
+            ['work', 'work', 'work'],
+            ['notes', 'notes', 'notes', true],
+        ];
     }
 
     multiProperties() {
-        return ['tel', 'email'];
+        return [
+            ['tel', 'tel', 'tel'],
+            ['email', 'email', 'email'],
+        ]
     }
 
 }
@@ -56,7 +64,7 @@ class ContactItem extends Component {
         this.addTel = this.addMultiItem.bind(this, 'tel');
         this.addEmail = this.addMultiItem.bind(this, 'email');
         this.toggleIsEditing = this.toggleIsEditing.bind(this);
-        this.toggleIsEditingSilently = this.toggleIsEditingSilently.bind(this);
+        this.handleDeleteClick = this.handleDeleteClick.bind(this);
 
         this.remover = () => {
             remover();
@@ -77,45 +85,48 @@ class ContactItem extends Component {
 
         if (this.isEditing) {
             const changes = {};
-            for (const label of this.record.singleProperties()) {
-                const value = this.node.querySelector(`input[name=${label}]`).value.trim();
-                changes[label] = value;
+            for (const [_, prop] of this.record.singleProperties()) {
+                const value = this.node.querySelector(`[name=${prop}]`).value.trim();
+                changes[prop] = value;
             }
-            for (const label of this.record.multiProperties()) {
-                const inputs = this.node.querySelectorAll(`input[name=${label}]`);
+            for (const [_, prop] of this.record.multiProperties()) {
+                const inputs = this.node.querySelectorAll(`input[name=${prop}]`);
                 const values = Array.from(inputs).map(el => el.value.trim()).filter(el => el !== '');
-                changes[label] = values;
+                changes[prop] = values;
             }
             this.record.update(changes);
             this.persister();
             this.sorter();
         }
 
-        this.toggleIsEditingSilently();
-    }
-
-    toggleIsEditingSilently(evt) {
-        if (evt) {
-            evt.stopPropagation();
-        }
-
         this.isEditing = !this.isEditing;
         this.render();
     }
 
+    handleDeleteClick(evt) {
+        if (window.confirm(`Delete ${this.record.get('name')}?`)) {
+            this.remover();
+        }
+    }
+
     compose(data) {
-        const inputGroup = (label, prop, placeholder) => {
+        const inputGroup = (label, prop, placeholder, isMultiline = false) => {
             const val = data[prop];
 
-            if (!this.isEditing && val == null) {
+            if (!this.isEditing && !val) {
                 return null;
             }
 
+            const tag = isMultiline ? 'textarea' : 'input';
+
             return jdom`<div class="inputGroup">
-                <label>${label}</label>
+                <label class="contact-label">${label}</label>
                 <div class="entries">
                     ${this.isEditing ? (
-                        jdom`<input type="text" name="${prop}" value="${val}" placeholder="${placeholder}" />`
+                        jdom`<${tag} type="text" name="${prop}" value="${val}"
+                            class="contact-input"
+                            autocomplete="none"
+                            placeholder="${placeholder}" />`
                     ) : (
                         jdom`<div>${val}</div>`
                     )}
@@ -131,11 +142,15 @@ class ContactItem extends Component {
             }
 
             return jdom`<div class="inputGroup">
-                <label>${label}</label>
+                <label class="contact-label">${label}</label>
                 <div class="entries">
                     ${this.isEditing ? (
-                        vals.map(t => jdom`<input type="text" name="${prop}" value="${t}" placeholder="${placeholder}" />`)
-                            .concat(jdom`<button onclick="${this.addMultiItem.bind(this, prop)}">+ ${placeholder}</button>`)
+                        vals.map(t => jdom`<input type="text" name="${prop}" value="${t}"
+                                class="contact-input"
+                                autocomplete="none"
+                                placeholder="${placeholder}" />`)
+                            .concat(jdom`<button class="contact-add-button"
+                                onclick="${this.addMultiItem.bind(this, prop)}">+ ${placeholder}</button>`)
                     ) : (
                         vals.map(t => jdom`<span>${t}</span>`)
                     )}
@@ -143,26 +158,26 @@ class ContactItem extends Component {
             </div>`;
         }
 
-        return jdom`<li class="contact-item card paper block split-v" onclick="${this.isEditing || this.toggleIsEditing}">
+        return jdom`<li class="contact-item card paper block split-v ${this.isEditing ? 'isEditing' : 'notEditing'}"
+                onclick="${this.isEditing || this.toggleIsEditing}">
             <div class="editArea split-h">
-                <div class="left">
-                    ${this.record.singleProperties().map(label => {
-                        return inputGroup(label, label, label)
+                <div class="left contact-single-items">
+                    ${this.record.singleProperties().map(args => {
+                        return inputGroup(...args)
                     })}
                 </div>
-                <div class="right">
-                    ${this.record.multiProperties().map(label => {
-                        return inputMultiGroup(label, label, label)
+                <div class="right contact-multi-items">
+                    ${this.record.multiProperties().map(args => {
+                        return inputMultiGroup(...args)
                     })}
                 </div>
             </div>
-            ${this.isEditing ? jdom`<div class="split-h">
+            ${this.isEditing ? jdom`<div class="buttonFooter split-h frost">
                 <div class="left buttonArea">
-                    <button class="frost block card" onclick="${this.remover}">delete</button>
+                    <button class="contact-button" onclick="${this.handleDeleteClick}">delete</button>
                 </div>
                 <div class="right buttonArea">
-                    <button class="frost block card" onclick="${this.toggleIsEditingSilently}">cancel</button>
-                    <button class="frost block card" onclick="${this.toggleIsEditing}">save</button>
+                    <button class="contact-button" onclick="${this.toggleIsEditing}">save</button>
                 </div>
             </div>` : null}
         </li>`;
@@ -174,7 +189,7 @@ class ContactList extends ListOf(ContactItem) {
 
     compose(items) {
         return jdom`<ul class="contact-list">
-            ${this.nodes}
+            ${this.nodes.slice(0, PAGIATE_BY)}
         </div>`;
     }
 
@@ -246,7 +261,7 @@ class App extends Component {
                         placeholder="type to search..." />
                 </div>
                 <button class="addButton card frost block"
-                    onclick="${() => this.contacts.create({name: 'person'})}">add</button>
+                    onclick="${() => this.contacts.create({name: '?'})}">add</button>
             </header>
             ${this.list.node}
             <footer>
