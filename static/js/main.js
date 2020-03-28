@@ -362,7 +362,7 @@ class App extends Component {
             </header>
             ${this.list.node}
             <footer>
-                <a href="https://github.com/thesehpist/mira" target="_blank">src</a>
+                <a href="https://github.com/thesephist/mira" target="_blank">src</a>
                 ::
                 &#169; 2020
             </footer>
