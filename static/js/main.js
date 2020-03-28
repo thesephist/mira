@@ -16,6 +16,7 @@ class Contact extends Record {
             ['name', 'name', 'name'],
             ['place', 'place', 'place'],
             ['work', 'work', 'work'],
+            ['twttr', 'twttr', '@username'],
             ['notes', 'notes', 'notes', true],
         ];
     }
@@ -24,6 +25,7 @@ class Contact extends Record {
         return [
             ['tel', 'tel', 'tel'],
             ['email', 'email', 'email'],
+            ['mtg', 'mtg', 'meeting', true],
         ]
     }
 
@@ -64,6 +66,7 @@ class ContactItem extends Component {
         this.addTel = this.addMultiItem.bind(this, 'tel');
         this.addEmail = this.addMultiItem.bind(this, 'email');
         this.toggleIsEditing = this.toggleIsEditing.bind(this);
+        this.toggleIsEditingSilently = this.toggleIsEditingSilently.bind(this);
         this.handleDeleteClick = this.handleDeleteClick.bind(this);
 
         this.remover = () => {
@@ -97,6 +100,14 @@ class ContactItem extends Component {
             this.record.update(changes);
             this.persister();
             this.sorter();
+        }
+
+        this.toggleIsEditingSilently();
+    }
+
+    toggleIsEditingSilently(evt) {
+        if (evt) {
+            evt.stopPropagation();
         }
 
         this.isEditing = !this.isEditing;
@@ -134,18 +145,20 @@ class ContactItem extends Component {
             </div>`;
         }
 
-        const inputMultiGroup = (label, prop, placeholder) => {
+        const inputMultiGroup = (label, prop, placeholder, isMultiline = false) => {
             const vals = data[prop] || [];
 
             if (!this.isEditing && vals.length === 0) {
                 return null;
             }
 
+            const tag = isMultiline ? 'textarea' : 'input';
+
             return jdom`<div class="inputGroup">
                 <label class="contact-label">${label}</label>
                 <div class="entries">
                     ${this.isEditing ? (
-                        vals.map(t => jdom`<input type="text" name="${prop}" value="${t}"
+                        vals.map(t => jdom`<${tag} type="text" name="${prop}" value="${t}"
                                 class="contact-input"
                                 autocomplete="none"
                                 placeholder="${placeholder}" />`)
@@ -177,6 +190,7 @@ class ContactItem extends Component {
                     <button class="contact-button" onclick="${this.handleDeleteClick}">delete</button>
                 </div>
                 <div class="right buttonArea">
+                    <button class="contact-button" onclick="${this.toggleIsEditingSilently}">cancel</button>
                     <button class="contact-button" onclick="${this.toggleIsEditing}">save</button>
                 </div>
             </div>` : null}

@@ -132,6 +132,11 @@ header {
     display: flex;
     flex-direction: row;
     width: 100%;
+    margin-bottom: .4em;
+}
+
+.inputGroup:last-child {
+    margin-bottom: 0;
 }
 
 .inputGroup .entries {
@@ -216,10 +221,6 @@ header {
     background: var(--bg);
 }
 
-.inputGroup {
-    margin-bottom: .4em;
-}
-
 .contact-single-items,
 .contact-multi-items {
     box-sizing: border-box;
@@ -227,8 +228,10 @@ header {
 }
 
 .contact-label {
-    min-width: 3em;
-    margin-right: .25em;
+    min-width: 2.5em;
+    margin-right: .5em;
+    color: var(--light);
+    text-align: right;
 }
 
 .isEditing .contact-label {
@@ -249,7 +252,7 @@ header {
 }
 
 textarea.contact-input {
-    height: 8em;
+    height: 6em;
     resize: none;
 }
 
