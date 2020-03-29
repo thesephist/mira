@@ -153,7 +153,8 @@ class ContactItem extends Component {
     }
 
     fillToday(evt) {
-        this.node.querySelector('[name=last]').value = TODAY_ISO;
+        this.inputs.last = TODAY_ISO;
+        this.render();
     }
 
     handleInput(evt) {
@@ -189,7 +190,7 @@ class ContactItem extends Component {
                 <label class="contact-label">${label}</label>
                 <div class="entries">
                     ${this.isEditing ? (
-                        jdom`<${tag} type="text" name="${prop}" value="${val}"
+                        jdom`<${tag} type="text" name="${prop}" value="${val || ''}"
                             class="contact-input"
                             autocomplete="none"
                             onkeydown="${this.persistIfEnter}"
@@ -215,7 +216,7 @@ class ContactItem extends Component {
                 <label class="contact-label">${label}</label>
                 <div class="entries">
                     ${this.isEditing ? (
-                        vals.map((t, idx) => jdom`<${tag} type="text" name="${prop}-${idx}" value="${t}"
+                        vals.map((t, idx) => jdom`<${tag} type="text" name="${prop}-${idx}" value="${t || ''}"
                                 class="contact-input"
                                 autocomplete="none"
                                 onkeydown="${this.persistIfEnter}"
