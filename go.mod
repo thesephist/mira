@@ -2,7 +2,4 @@ module github.com/thesephist/mira
 
 go 1.14
 
-require (
-	github.com/gorilla/mux v1.7.4
-	github.com/rakyll/statik v0.1.7
-)
+require github.com/gorilla/mux v1.7.4
