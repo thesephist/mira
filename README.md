@@ -13,6 +13,8 @@ In particular, in addition to normal contact info you see in every app, Mira is 
 - place: what city do they live in? This is useful for remembering to visit people I haven't seen in a while whenever I visit a city for the first time in some time.
 - unstructured notes: things like extracurricular or volunteering involvements, event attendance, hobbies, and other extraneous information that's useful to know, but not trivial.
 
+If you want to try Mira, there's a fork of Mira [here](https://github.com/abdelhai/mira) that you can one-click deploy on [Deta](https://www.deta.sh)!
+
 ## ⚠️ Mira is a prototype ⚠️
 
 This current version of Mira is a "rough draft" of sorts. Eventually, I hope to write a version of Mira that's fast, efficient, and works exactly the way I want my workflow to be. But a problem here is that I'm not even 100% sure what that workflow _looks like_ yet -- I've never had anything that worked super well for me, so my current workflow is pretty ad-hoc and haphazard.
