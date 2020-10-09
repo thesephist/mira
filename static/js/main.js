@@ -320,6 +320,11 @@ class App extends Component {
         }
 
         this.list.filter(contact => {
+            // Newly added contacts should show up, even in a filtered view
+            if (contact.get('name') === '?') {
+                return true;
+            }
+
             for (const v of Object.values(contact.serialize())) {
                 if (v == null) {
                     continue;
