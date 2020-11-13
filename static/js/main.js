@@ -378,6 +378,9 @@ class App extends Component {
                 return false;
             });
         }
+
+        // Manually render once to update search result count
+        this.render();
     }
 
     compose() {
@@ -390,8 +393,9 @@ class App extends Component {
                     <input type="text" value="${this.searchInput}"
                         class="searchInput paper block"
                         oninput="${this.handleSearch}"
-                        placeholder="search ${this.contacts.records.size} contacts ..."
+                        placeholder="search people..."
                         autofocus />
+                    <div class="matchCount">${this.list.items.size}</div>
                 </div>
                 <button class="addButton card frost block"
                     onclick="${() => this.contacts.create({
