@@ -314,20 +314,21 @@ class App extends Component {
             return
         }
 
-        const kw = this.searchInput.toLowerCase();
-        function matches(s) {
-            return s.toString().toLowerCase().includes(kw);
-        }
-
-        this.list.filter(contact => {
-            // Newly added contacts should show up, even in a filtered view
-            if (contact.get('name') === '?') {
-                return true;
+        // if search is in the form `[word]: [...words]`
+        // we only search field named [word].
+        const match = this.searchInput.match(/^(\w+):(.*)$/)
+        if (match) {
+            const [_, prop, kw_o] = match;
+            const kw = kw_o.trim().toLowerCase();
+            function matches(s) {
+                return s.toString().toLowerCase().includes(kw);
             }
 
-            for (const v of Object.values(contact.serialize())) {
+            this.list.filter(contact => {
+                const v = contact.serialize()[prop];
+
                 if (v == null) {
-                    continue;
+                    return false;
                 }
 
                 if (Array.isArray(v)) {
@@ -341,10 +342,42 @@ class App extends Component {
                         return true;
                     }
                 }
+
+                return false;
+            });
+        } else {
+            const kw = this.searchInput.toLowerCase();
+            function matches(s) {
+                return s.toString().toLowerCase().includes(kw);
             }
 
-            return false;
-        });
+            this.list.filter(contact => {
+                // Newly added contacts should show up, even in a filtered view
+                if (contact.get('name') === '?') {
+                    return true;
+                }
+
+                for (const v of Object.values(contact.serialize())) {
+                    if (v == null) {
+                        continue;
+                    }
+
+                    if (Array.isArray(v)) {
+                        for (const it of v) {
+                            if (matches(it)) {
+                                return true;
+                            }
+                        }
+                    } else {
+                        if (matches(v)) {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            });
+        }
     }
 
     compose() {
