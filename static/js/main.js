@@ -338,6 +338,7 @@ class App extends Component {
 
         if (this.searchInput === '') {
             this.list.unfilter();
+            this.render();
             return
         }
 
