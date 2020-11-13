@@ -232,7 +232,13 @@ class ContactItem extends Component {
         }
 
         return jdom`<li class="contact-item card paper block split-v ${this.isEditing ? 'isEditing' : 'notEditing'}"
-                onclick="${this.isEditing || this.toggleIsEditing}">
+                onclick="${this.isEditing || this.toggleIsEditing}"
+                onkeyup="${evt => {
+                    if (evt.target == this.node && evt.key === 'Enter') {
+                        this.toggleIsEditing();
+                    }
+                }}"
+                tabIndex="0">
             <div class="editArea split-h">
                 <div class="left contact-single-items">
                     ${this.record.singleProperties().map(args => {
