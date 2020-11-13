@@ -11,6 +11,27 @@ const PAGIATE_BY = 100;
 
 const TODAY_ISO = (new Date()).toISOString().slice(0, 10);
 
+//> Debounce coalesces multiple calls to the same function in a short
+//  period of time into one call, by cancelling subsequent calls within
+//  a given timeframe.
+const debounce = (fn, delayMillis) => {
+    let lastRun = 0;
+    let to = null;
+    return (...args) => {
+        clearTimeout(to);
+        const now = Date.now();
+        const dfn = () => {
+            lastRun = now;
+            fn(...args);
+        }
+        if (now - lastRun > delayMillis) {
+            dfn()
+        } else {
+            to = setTimeout(dfn, delayMillis);
+        }
+    }
+}
+
 class Contact extends Record {
 
     singleProperties() {
@@ -282,7 +303,7 @@ class App extends Component {
         this.searchInput = '';
         this.isFetching = false;
 
-        this.handleSearch = this.handleSearch.bind(this);
+        this.handleSearch = debounce(this.handleSearch.bind(this), 200);
 
         this.contacts = new ContactStore();
         this.list = new ContactList(
