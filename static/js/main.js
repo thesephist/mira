@@ -339,6 +339,7 @@ class App extends Component {
 
         if (trimmedInput === '') {
             this.list.unfilter();
+            this.render();
             return
         }
 
