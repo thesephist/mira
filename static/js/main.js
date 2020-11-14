@@ -334,16 +334,17 @@ class App extends Component {
     }
 
     handleSearch(evt) {
-        this.searchInput = evt.target.value.trim();
+        this.searchInput = evt.target.value;
+        const trimmedInput = this.searchInput.trim();
 
-        if (this.searchInput === '') {
+        if (trimmedInput === '') {
             this.list.unfilter();
             return
         }
 
         // if search is in the form `[word]: [...words]`
         // we only search field named [word].
-        const match = this.searchInput.match(/^(\w+):(.*)$/)
+        const match = trimmedInput.match(/^(\w+):(.*)$/)
         if (match) {
             const [_, prop, kw_o] = match;
             const kw = kw_o.trim().toLowerCase();
@@ -373,7 +374,7 @@ class App extends Component {
                 return false;
             });
         } else {
-            const kw = this.searchInput.toLowerCase();
+            const kw = trimmedInput.toLowerCase();
             function matches(s) {
                 return s.toString().toLowerCase().includes(kw);
             }
