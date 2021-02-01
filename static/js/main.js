@@ -32,6 +32,10 @@ const debounce = (fn, delayMillis) => {
     }
 }
 
+const isInputNode = node => {
+    return ['input', 'textarea'].includes(node.tagName.toLowerCase());
+}
+
 class Contact extends Record {
 
     singleProperties() {
@@ -255,8 +259,12 @@ class ContactItem extends Component {
         return jdom`<li class="contact-item card paper block split-v ${this.isEditing ? 'isEditing' : 'notEditing'}"
                 onclick="${this.isEditing || this.toggleIsEditing}"
                 onkeyup="${evt => {
-                    if (evt.target == this.node && evt.key === 'Enter') {
+                    if (evt.target !== this.node) return;
+
+                    if (evt.key === 'Enter' && !this.isEditing) {
                         this.toggleIsEditing();
+                    } else if (evt.key === 'Escape' && this.isEditing) {
+                        this.toggleIsEditingSilently();
                     }
                 }}"
                 tabIndex="0">
@@ -321,6 +329,14 @@ class App extends Component {
                 sorter: () => this.list.itemsChanged(),
             },
         );
+
+        // Provide the vim-style shortcut of '/' starting a search
+        document.addEventListener('keyup', evt => {
+            if (!isInputNode(evt.target) && evt.key === '/') {
+                evt.preventDefault();
+                this.node.querySelector('.searchInput').focus();
+            }
+        });
 
         (async () => {
             this.isFetching = true;

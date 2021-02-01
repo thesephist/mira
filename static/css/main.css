@@ -92,7 +92,9 @@ input[type="submit"] {
 }
 
 button:hover,
-input[type="submit"].card:hover {
+button:focus,
+input[type="submit"].card:hover,
+input[type="submit"].card:focus {
     cursor: pointer;
     opacity: .75;
 }
@@ -161,7 +163,6 @@ header {
     flex-grow: 1;
 }
 
-.searchButton,
 .addButton {
     margin: 0;
 }
