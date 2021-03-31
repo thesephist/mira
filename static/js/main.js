@@ -311,6 +311,7 @@ class App extends Component {
         this.searchInput = '';
         this.isFetching = false;
 
+        this.handleInput = this.handleInput.bind(this);
         this.handleSearch = debounce(this.handleSearch.bind(this), 200);
 
         this.contacts = new ContactStore();
@@ -338,6 +339,12 @@ class App extends Component {
             }
         });
 
+        const initialSearchInput = new URLSearchParams(window.location.search).get('q');
+        if (initialSearchInput) {
+            this.searchInput = decodeURIComponent(initialSearchInput);
+            this.handleSearch();
+        }
+
         (async () => {
             this.isFetching = true;
             this.render();
@@ -349,8 +356,22 @@ class App extends Component {
         })();
     }
 
-    handleSearch(evt) {
+    handleInput(evt) {
         this.searchInput = evt.target.value;
+        this.render();
+
+        this.handleSearch();
+    }
+
+    handleSearch() {
+        const url = new URL(window.location.href);
+        if (this.searchInput) {
+            url.searchParams.set('q', encodeURIComponent(this.searchInput));
+        } else {
+            url.searchParams.delete('q');
+        }
+        window.history.replaceState(null, document.title, url.toString());
+
         const trimmedInput = this.searchInput.trim();
 
         if (trimmedInput === '') {
@@ -437,7 +458,7 @@ class App extends Component {
                 <div class="searchBar card">
                     <input type="text" value="${this.searchInput}"
                         class="searchInput paper block"
-                        oninput="${this.handleSearch}"
+                        oninput="${this.handleInput}"
                         placeholder="search people..."
                         autofocus />
                     <div class="matchCount">${this.list.items.size}</div>
