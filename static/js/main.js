@@ -139,8 +139,7 @@ class ContactItem extends Component {
 
         if (this.isEditing) {
             // remove empty items
-            for (const prop of Object.keys(this.inputs)) {
-                const item = this.inputs[prop];
+            for (const [prop, item] of Object.entries(this.inputs)) {
                 if (item == null) {
                     continue;
                 }
@@ -156,7 +155,15 @@ class ContactItem extends Component {
             this.persister();
             this.sorter();
         } else {
-            this.inputs = this.record.serialize();
+            this.inputs = {};
+
+            for (const [prop, item] of Object.entries(this.record.serialize())) {
+                if (Array.isArray(item)) {
+                    this.inputs[prop] = item.slice();
+                } else {
+                    this.inputs[prop] = item;
+                }
+            }
         }
 
         this.toggleIsEditingSilently();
